@@ -5,9 +5,12 @@ import (
 	"net/http"
 	"os"
 	// "tickets/models"
+	"tickets/database"
 )
 
-type application struct{}
+type application struct {
+	db *database.Database
+}
 
 func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
@@ -17,12 +20,24 @@ func getEnv(key, fallback string) string {
 }
 
 func main() {
-	port := getEnv("PORT", "5555")
+	httpPort := getEnv("PORT", "5555")
 
-	app := &application{}
+	dbHost := getEnv("DB_HOST", "localhost")
+	dbPort := getEnv("DB_PORT", "5432")
+	dbUser := getEnv("DB_USER", "postgres")
+	dbPassword := getEnv("DB_PASSWORD", "postgres")
+	dbName := getEnv("DB_NAME", "tickets")
 
-	log.Printf("Server starting on port %s", port)
-	err := http.ListenAndServe(":"+port, app.routes())
+	db, err := database.New(dbHost, dbPort, dbUser, dbPassword, dbName)
+	if err != nil {
+		log.Fatal("Could not establish connection to database")
+		os.Exit(1)
+	}
+
+	app := &application{db: db}
+
+	log.Printf("Server starting on port %s", httpPort)
+	err = http.ListenAndServe(":"+httpPort, app.routes())
 	log.Fatal(err.Error())
 	os.Exit(1)
 
