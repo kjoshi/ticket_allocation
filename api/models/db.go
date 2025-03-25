@@ -50,3 +50,20 @@ func (d *Database) GetTicketOption(id uuid.UUID) (TicketOption, error) {
 
 	return ticketOption, nil
 }
+
+func (d *Database) CreateTicketOption(name string, description string, allocation int) (TicketOption, error) {
+	stmt := "INSERT INTO ticket_options (name, description, allocation) VALUES ($1, $2, $3) RETURNING id"
+	result := d.DB.QueryRow(stmt, name, description, allocation)
+
+	var ticketOptionID uuid.UUID
+	err := result.Scan(&ticketOptionID)
+
+	ticketOption := TicketOption{Name: name, Description: description, Allocation: allocation}
+	if err != nil {
+		ticketOption.ID = uuid.Nil
+		return ticketOption, err
+	}
+
+	ticketOption.ID = ticketOptionID
+	return ticketOption, nil
+}
