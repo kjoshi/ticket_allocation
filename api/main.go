@@ -4,12 +4,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-	// "tickets/models"
-	"tickets/database"
+	"tickets/models"
 )
 
 type application struct {
-	db *database.Database
+	db *models.Database
 }
 
 func getEnv(key, fallback string) string {
@@ -28,7 +27,7 @@ func main() {
 	dbPassword := getEnv("DB_PASSWORD", "postgres")
 	dbName := getEnv("DB_NAME", "tickets")
 
-	db, err := database.New(dbHost, dbPort, dbUser, dbPassword, dbName)
+	db, err := models.DB(dbHost, dbPort, dbUser, dbPassword, dbName)
 	if err != nil {
 		log.Fatal("Could not establish connection to database")
 		os.Exit(1)

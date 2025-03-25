@@ -1,28 +1,52 @@
 package models
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
+
 	"github.com/google/uuid"
+	_ "github.com/lib/pq"
 )
 
-type TicketOption struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Allocation  int       `json:"allocation"`
+type Database struct {
+	DB *sql.DB
 }
 
-type Purchase struct {
-	ID           uuid.UUID `json:"id"`
-	TicketOption uuid.UUID `json:"ticket_option_id"`
-	User         uuid.UUID `json:"user_id"`
-	Quantity     int       `json:"quantity"`
+func DB(host, port, user, password, dbname string) (*Database, error) {
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	db, err := sql.Open("postgres", dsn)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	d := &Database{DB: db}
+	return d, nil
 }
 
-type User struct {
-	ID uuid.UUID `json:"id"`
-}
+func (d *Database) GetTicketOption(id uuid.UUID) (TicketOption, error) {
+	stmt := "SELECT id, name, description, allocation FROM ticket_options WHERE id = $1"
+	row := d.DB.QueryRow(stmt, id)
 
-type Ticket struct {
-	ID       uuid.UUID `json:"id"`
-	Purchase uuid.UUID `json:"purchase_id"`
+	var ticketOption TicketOption
+	err := row.Scan(&ticketOption.ID, &ticketOption.Name, &ticketOption.Description, &ticketOption.Allocation)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return TicketOption{}, ErrNoRecord
+		} else {
+			return TicketOption{}, err
+		}
+	}
+
+	return ticketOption, nil
 }
