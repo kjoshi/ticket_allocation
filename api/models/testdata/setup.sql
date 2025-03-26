@@ -1,7 +1,3 @@
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS ticket_options;
-DROP TABLE IF EXISTS purchases;
-
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -32,4 +28,4 @@ INSERT INTO users (id) VALUES ('d6abe829-c28c-44ec-bee6-3183f2c53fef');
 
 -- Create a test ticket option
 INSERT INTO ticket_options (id, name, description, allocation) 
-VALUES ('969f4317-09f4-4b15-b8be-a87d40fb56fb', 'Test Event', 'A test event for the API', 100);
+VALUES ('969f4317-09f4-4b15-b8be-a87d40fb56fb', 'Test Event', 'A test event for the API', 10);

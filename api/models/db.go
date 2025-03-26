@@ -74,7 +74,7 @@ func (d *Database) CreatePurchase(ticketOptionId uuid.UUID, requestedQuantity in
 		log.Print(err.Error())
 		return Purchase{}, err
 	}
-	defer tx.Rollback() // Will be ignored if transaction is committed
+	defer tx.Rollback()
 
 	var currentAllocation int
 	err = tx.QueryRow("SELECT allocation FROM ticket_options WHERE id = $1 FOR UPDATE", ticketOptionId).Scan(&currentAllocation)
