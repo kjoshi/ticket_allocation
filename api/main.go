@@ -19,7 +19,7 @@ func getEnv(key, fallback string) string {
 }
 
 func main() {
-	httpPort := getEnv("PORT", "5555")
+	httpPort := getEnv("PORT", "3000")
 
 	dbHost := getEnv("DB_HOST", "localhost")
 	dbPort := getEnv("DB_PORT", "5432")
