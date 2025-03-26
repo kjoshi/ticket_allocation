@@ -99,5 +99,50 @@ func (app *application) PurchaseTickets(w http.ResponseWriter, r *http.Request) 
 		sendBadRequestResponse(w, "invalid_request", "Invalid request body", err.Error(), "/data")
 		return
 	}
-	return
+
+	if req.Data.Type != "purchases" {
+		sendBadRequestResponse(w, "invalid_type", "Invalid data type", "Expected 'purchases'", "/data/type")
+		return
+	}
+
+	if req.Data.Attributes.Quantity < 1 {
+		sendBadRequestResponse(w, "invalid_quantity", "Invalid quantity", "Quantity must be greater than zero", "/data/attributes/quantity")
+		return
+	}
+
+	_, err = app.db.GetTicketOption(req.Data.Relationships.TicketOption.Data.ID)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			sendBadRequestResponse(w, "invalid_ticket_option", "Invalid ticket option", "Ticket option not found", "/data/relationships/ticket_option/data/id")
+		} else {
+			sendErrorResponse(w, http.StatusInternalServerError, "database_error", "Database error", err.Error(), "")
+		}
+		return
+	}
+
+	//TODO: Check that the user exists
+
+	purchase, err := app.db.CreatePurchase(req.Data.Relationships.TicketOption.Data.ID, req.Data.Attributes.Quantity, req.Data.Relationships.User.Data.ID)
+
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidQuantity) {
+			sendBadRequestResponse(w, "invalid_purchase_quantity", "Unable to purhase quantity provided", "Unable to reserve given quantity of ticket options", "/data/attributes/quantity")
+		} else {
+			sendErrorResponse(w, http.StatusInternalServerError, "database_error", "Database error", err.Error(), "")
+		}
+		return
+	}
+	resp := models.PurchaseResponse{}
+	resp.Data.Type = "purchases"
+	resp.Data.ID = purchase.ID
+	resp.Data.Attributes.Quantity = purchase.Quantity
+	resp.Data.Relationships.TicketOption.Data.Type = "ticket_options"
+	resp.Data.Relationships.TicketOption.Data.ID = purchase.TicketOption
+	resp.Data.Relationships.User.Data.Type = "users"
+	resp.Data.Relationships.User.Data.ID = purchase.User
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(resp)
+
 }

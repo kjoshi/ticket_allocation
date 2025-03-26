@@ -6,6 +6,7 @@ func (app *application) routes() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /ticket_options/{id}", app.GetTicketOption)
 	mux.HandleFunc("POST /ticket_options", app.CreateTicketOption)
+	mux.HandleFunc("POST /purchases", app.PurchaseTickets)
 
 	return mux
 }

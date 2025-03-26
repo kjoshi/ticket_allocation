@@ -6,6 +6,8 @@ import (
 
 var ErrNoRecord = errors.New("No matching record found")
 
+var ErrInvalidQuantity = errors.New("invalid_purchase_quantity")
+
 type ErrorResponse struct {
 	Status int    `json:"status"`
 	Code   string `json:"code"`

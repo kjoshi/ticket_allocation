@@ -27,13 +27,6 @@ CREATE TABLE purchases (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE tickets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    purchase_id UUID NOT NULL REFERENCES purchases(id),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
 
 -- Create a test user for convenience
 INSERT INTO users (id) VALUES ('d6abe829-c28c-44ec-bee6-3183f2c53fef');

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -58,12 +59,54 @@ func (d *Database) CreateTicketOption(name string, description string, allocatio
 	var ticketOptionID uuid.UUID
 	err := result.Scan(&ticketOptionID)
 
-	ticketOption := TicketOption{Name: name, Description: description, Allocation: allocation}
 	if err != nil {
-		ticketOption.ID = uuid.Nil
-		return ticketOption, err
+		log.Print(err.Error())
+		return TicketOption{}, err
 	}
 
-	ticketOption.ID = ticketOptionID
+	ticketOption := TicketOption{ID: ticketOptionID, Name: name, Description: description, Allocation: allocation}
 	return ticketOption, nil
+}
+
+func (d *Database) CreatePurchase(ticketOptionId uuid.UUID, requestedQuantity int, userId uuid.UUID) (Purchase, error) {
+	tx, err := d.DB.Begin()
+	if err != nil {
+		log.Print(err.Error())
+		return Purchase{}, err
+	}
+	defer tx.Rollback() // Will be ignored if transaction is committed
+
+	var currentAllocation int
+	err = tx.QueryRow("SELECT allocation FROM ticket_options WHERE id = $1 FOR UPDATE", ticketOptionId).Scan(&currentAllocation)
+
+	if requestedQuantity > currentAllocation {
+		log.Print("Insufficient quantity in allocation")
+		return Purchase{}, ErrInvalidQuantity
+	}
+
+	newAllocation := currentAllocation - requestedQuantity
+	_, err = tx.Exec("UPDATE ticket_options SET allocation = $1, updated_at = NOW() WHERE id = $2", newAllocation, ticketOptionId)
+	if err != nil {
+		log.Print(err.Error())
+		return Purchase{}, err
+	}
+
+	var purchaseID uuid.UUID
+	err = tx.QueryRow("INSERT INTO purchases (ticket_option_id, user_id, quantity) VALUES ($1, $2, $3) RETURNING id",
+		ticketOptionId, userId, requestedQuantity).Scan(&purchaseID)
+
+	if err != nil {
+		log.Print(err.Error())
+		return Purchase{}, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Print(err.Error())
+		return Purchase{}, err
+	}
+
+	purchase := Purchase{purchaseID, ticketOptionId, userId, requestedQuantity}
+	return purchase, nil
+
 }
