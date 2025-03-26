@@ -19,24 +19,15 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
-    build:
-      context: ./api
-      dockerfile: Dockerfile
-    container_name: tickets-api
+  db-test:
+    image: postgres:17-alpine
+    container_name: tickets-db-test
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: tickets
-      PORT: 5555
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tickets-test
     ports:
-      - "5555:5555"
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
+      - "6543:5432"
 
 volumes:
   postgres-data:
