@@ -1,13 +1,10 @@
 package main
 
 import (
-	"errors"
-	"net/http"
-
-	"github.com/google/uuid"
-
 	"encoding/json"
-
+	"errors"
+	"github.com/google/uuid"
+	"net/http"
 	"tickets/models"
 )
 
@@ -89,7 +86,7 @@ func (app *application) CreateTicketOption(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) PurchaseTickets(w http.ResponseWriter, r *http.Request) {
-	// TODO: Create a helper to decode the JSON body
+	// TODO: Create a helper to decode the JSON body?
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 
@@ -120,7 +117,8 @@ func (app *application) PurchaseTickets(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	//TODO: Check that the user exists
+	//TODO: Check that the user exists. Probably should do this is middleware after
+	//  validating an API key or Session token/cookie.
 
 	purchase, err := app.db.CreatePurchase(req.Data.Relationships.TicketOption.Data.ID, req.Data.Attributes.Quantity, req.Data.Relationships.User.Data.ID)
 
