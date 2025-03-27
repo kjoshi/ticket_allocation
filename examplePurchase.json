@@ -1,0 +1,22 @@
+{
+    "data": {
+        "type": "purchases",
+        "attributes": {
+            "quantity": 2
+        },
+        "relationships": {
+            "ticket_option": {
+                "data": {
+                    "type": "ticket_options",
+                    "id": "969f4317-09f4-4b15-b8be-a87d40fb56fb"
+                }
+            },
+            "user": {
+                "data": {
+                    "type": "users",
+                    "id": "d6abe829-c28c-44ec-bee6-3183f2c53fef"
+                }
+            }
+        }
+    }
+}
